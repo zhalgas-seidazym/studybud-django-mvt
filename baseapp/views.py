@@ -21,10 +21,9 @@ def loginPage(request):
         password = request.POST.get('password')
 
         try:
-            user = User.objects.get(username = username)
+            User.objects.get(username = username)
         except:
             messages.error(request, 'User does not exist')
-
         user = authenticate(request, username = username, password = password)
 
         if user is not None:
@@ -41,6 +40,9 @@ def logoutUser(request):
     return redirect('home')
 
 def registerUser(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+
     form = UserCreationForm()
 
     if request.method == "POST":
@@ -170,7 +172,10 @@ def updateUser(request):
     form = UserForm(instance = user)
 
     if request.method == 'POST':
-        form = UserForm(request.POST, instance = user)
+        post_data = request.POST.copy()
+        if 'username' in post_data:
+            post_data['username'] = post_data['username'].lower()
+        form = UserForm(post_data, instance = user)
         if form.is_valid():
             form.save()
             return redirect('user-profile', pk = user.id)

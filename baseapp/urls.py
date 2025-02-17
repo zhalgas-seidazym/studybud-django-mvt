@@ -19,4 +19,5 @@ urlpatterns = [
     path('delete-message/<str:pk>/', views.deleteMessage, name = 'delete-message'),
 
     path('topics/', views.topicsPage, name = 'topics'),
+    path('activity/', views.activitiesPage, name = 'activity'),
 ]

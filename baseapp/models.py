@@ -15,6 +15,7 @@ class User(AbstractUser):
 
 class Topic(models.Model):
     name = models.CharField(max_length = 200)
+    approved = models.BooleanField(default = False)
 
     def __str__(self):
         return self.name
@@ -27,6 +28,7 @@ class Room(models.Model):
     participants = models.ManyToManyField(User, related_name = 'participants', blank = True)
     updated = models.DateTimeField(auto_now = True)
     created = models.DateTimeField(auto_now_add = True)
+    approved = models.BooleanField(default = False)
 
     class Meta:
         ordering = ['-updated', '-created']

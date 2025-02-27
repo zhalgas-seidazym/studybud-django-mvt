@@ -61,20 +61,32 @@ def registerUser(request):
 def home(request):
     q = request.GET.get('q', '')
     rooms = Room.objects.filter(
-        Q(topic__name__icontains = q) |
-        Q(name__icontains = q) |
-        Q(description__icontains = q)
+        (
+            Q(topic__name__icontains = q) |
+            Q(name__icontains = q) |
+            Q(description__icontains = q)
+        ) &
+        Q(approved = True) &
+        Q(topic__approved = True)
     )
 
-    topics = Topic.objects.all()[0:5]
+    topics = Topic.objects.filter(approved = True)[0:5]
     room_count = rooms.count()
-    room_messages = Message.objects.all().filter(Q(room__topic__name__icontains = q))
+    room_messages = Message.objects.all().filter(
+        (
+            Q(room__topic__name__icontains = q) |
+            Q(room__description__icontains = q) |
+            Q(room__name__icontains = q)
+        ) &
+        Q(room__approved = True) &
+        Q(room__topic__approved = True)
+    )
 
     context = {'rooms': rooms, 'topics': topics, 'room_count': room_count, 'room_messages': room_messages}
     return render(request, 'baseapp/home.html', context)
 
 def room(request, pk):
-    room = Room.objects.get(id = pk)
+    room = Room.objects.get(id = pk, approved = True)
     room_messages = room.message_set.all()
     participants = room.participants.all()
     if request.method == "POST":
@@ -112,6 +124,7 @@ def createRoom(request):
             topic = topic,
             name = request.POST.get('name'),
             description = request.POST.get('description'),
+            approved = False,
         )
         return redirect('home')
 
@@ -133,6 +146,7 @@ def updateRoom(request, pk):
         room.name = request.POST.get('name')
         room.topic = topic
         room.description = request.POST.get('description')
+        room.approved = False
         room.save()
 
         return redirect('home')
@@ -183,12 +197,12 @@ def updateUser(request):
 
 def topicsPage(request):
     q = request.GET.get('q', '')
-    topics = Topic.objects.filter(name__icontains = q)
+    topics = Topic.objects.filter(name__icontains = q, approved = True)
     context = {'topics': topics}
     return render(request, 'baseapp/topics.html', context)
 
 def activitiesPage(request):
-    room_messages = Message.objects.all()
+    room_messages = Message.objects.filter(Q(room__approved = True))
     context = {'room_messages': room_messages}
     return render(request, 'baseapp/activity.html', context)
 

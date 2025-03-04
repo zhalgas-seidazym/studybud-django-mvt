@@ -33,6 +33,7 @@ def loginPage(request):
     context = {'page': page}
     return render(request, 'baseapp/login_register.html', context)
 
+@login_required(login_url='login')
 def logoutUser(request):
     logout(request)
     return redirect('home')
